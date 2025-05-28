@@ -213,12 +213,26 @@ for store in outlook.Stores:
                 }
                 df_resumen = pd.DataFrame(resumen)
 
+                # Pestaña distribución por edad, motivo y sexo
+                def clasifica_edad(edad):
+                    if edad == -1:
+                        return ">=80 o desconocida"
+                    elif edad < 60:
+                        return "<60"
+                    else:
+                        return ">=60"
+
+                df['Grupo_Edad'] = df['Edad'].apply(clasifica_edad)
+                dist = df.groupby(['Sexo', 'Grupo_Edad', 'Motivo']).size().reset_index(name='Cuenta')
+                dist = dist.sort_values(['Sexo', 'Grupo_Edad', 'Motivo'])
+
                 # Guardar en Excel con varias hojas
                 nombre_archivo = f"analisis_colon_{anyo if anyo else 'todos'}.xlsx"
                 with pd.ExcelWriter(nombre_archivo) as writer:
                     df.to_excel(writer, sheet_name="Datos", index=False)
                     df_otros.to_excel(writer, sheet_name="Otros motivos", index=False)
                     df_resumen.to_excel(writer, sheet_name="Resumen", index=False)
+                    dist.to_excel(writer, sheet_name="Distribución", index=False)
 
                 print(f"\nDatos exportados correctamente a '{nombre_archivo}'.")
 
