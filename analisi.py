@@ -4,8 +4,8 @@ from collections import Counter
 from datetime import datetime
 import pandas as pd  # Añade esta importación al inicio del archivo
 
-# Instalar, una única vez, módulo el win32com en una terminal con derechos administrativos
-# python -m pip install pywin32
+# Instalar, una única vez, los módulos requeridos en una terminal con derechos administrativos
+# python -m pip install pywin32 pandas openpyxl
 
 # Preguntar el año al usuario
 anyo = input("Introduce el año (formato 4 dígitos, dejar vacío para todos): ").strip()
