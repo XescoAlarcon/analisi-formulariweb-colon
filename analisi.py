@@ -2,6 +2,7 @@ import os
 import win32com.client
 from collections import Counter
 from datetime import datetime
+import pandas as pd  # Añade esta importación al inicio del archivo
 
 # Instalar, una única vez, módulo el win32com en una terminal con derechos administrativos
 # python -m pip install pywin32
@@ -176,12 +177,50 @@ for store in outlook.Stores:
                     print("-" * 40)
                 else:
                     print("No hay motivos adicionales para mujeres.")                        
-                        
-        else:
-            print("No se encontró la carpeta 'FORMULARI WEB'.")
-        break
-else:
-    print("No se encontró el archivo PST.")
+
+            # Preguntar si se quiere exportar a Excel
+            exportar_excel = input("\n¿Quieres exportar los datos a excel (s/n)? ").strip().lower()
+            if exportar_excel == "s":
+                # Crear DataFrames para hombres y mujeres
+                df_hombres = pd.DataFrame(datos_hombres, columns=["Edad", "Motivo"])
+                df_hombres["Sexo"] = "Hombre"
+                df_mujeres = pd.DataFrame(datos_mujeres, columns=["Edad", "Motivo"])
+                df_mujeres["Sexo"] = "Mujer"
+                df = pd.concat([df_hombres, df_mujeres], ignore_index=True)
+
+                # Añadir detalles de "otros motivos"
+                otros_hombres = pd.DataFrame({
+                    "Sexo": ["Hombre"] * len(detalle_motivos_otros_hombres),
+                    "Detalle_Otros": detalle_motivos_otros_hombres
+                })
+                otros_mujeres = pd.DataFrame({
+                    "Sexo": ["Mujer"] * len(detalle_motivos_otros_mujeres),
+                    "Detalle_Otros": detalle_motivos_otros_mujeres
+                })
+                df_otros = pd.concat([otros_hombres, otros_mujeres], ignore_index=True)
+
+                # Estadísticas generales
+                resumen = {
+                    "Total consultas": [hombres + mujeres],
+                    "Total hombres": [hombres],
+                    "Total mujeres": [mujeres],
+                    "Hombres < 60 años": [sum(1 for e, _ in datos_hombres if e != -1 and e < 60)],
+                    "Hombres >= 60 años": [sum(1 for e, _ in datos_hombres if e != -1 and e >= 60)],
+                    "Hombres missing": [sum(1 for e, _ in datos_hombres if e == -1)],
+                    "Mujeres < 60 años": [sum(1 for e, _ in datos_mujeres if e != -1 and e < 60)],
+                    "Mujeres >= 60 años": [sum(1 for e, _ in datos_mujeres if e != -1 and e >= 60)],
+                    "Mujeres missing": [sum(1 for e, _ in datos_mujeres if e == -1)],
+                }
+                df_resumen = pd.DataFrame(resumen)
+
+                # Guardar en Excel con varias hojas
+                nombre_archivo = f"analisis_colon_{anyo if anyo else 'todos'}.xlsx"
+                with pd.ExcelWriter(nombre_archivo) as writer:
+                    df.to_excel(writer, sheet_name="Datos", index=False)
+                    df_otros.to_excel(writer, sheet_name="Otros motivos", index=False)
+                    df_resumen.to_excel(writer, sheet_name="Resumen", index=False)
+
+                print(f"\nDatos exportados correctamente a '{nombre_archivo}'.")
 
 # Opcional: Quitar el PST después de listar (descomentar si se desea)
 # outlook.RemoveStore(root_folder)
