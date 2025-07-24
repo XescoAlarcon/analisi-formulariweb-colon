@@ -48,7 +48,7 @@ for store in outlook.Stores:
             anyo_actual = datetime.now().year
             for item in target_folder.Items:
                 if hasattr(item, "Subject") and hasattr(item, "ReceivedTime"):
-                    if item.Subject.startswith("Formulari còlon"):
+                    if item.Subject.startswith("Formulari còlon") or item.Subject.startswith("Formulario colon"):
                         # Filtrar por año de ReceivedTime solo si se ha introducido
                         if not anyo or str(item.ReceivedTime.year) == anyo:
                             # Analizar el cuerpo del mensaje
@@ -57,17 +57,17 @@ for store in outlook.Stores:
                                 # Quedarnos con la primera línea para el Motivo
                                 if len(lineas) > 0:
                                     motivo_linea = lineas[0]
-                                    # El motivo aparece a partir del caracter 22
-                                    motivo = motivo_linea[22:]
+                                    motivo= motivo_linea[len("Motiu de la consulta: "):].strip()
+                                    motivo= motivo_linea[len("Motivo de la consulta: "):].strip()
                                     motivos.append(motivo)                                                                        
                                 # Quedarnos con la cuarta línea que empieza por 'CIP:'
                                 if len(lineas) >= 4:
                                     cip_linea = lineas[3]
                                     if len(cip_linea) > 0:
-                                        # El décimo caracter de cip_linea (índice 9)
-                                        cip_sexo = cip_linea[9]
-                                        # Año de nacimiento: carácteres 11 y 12 (año)
                                         try:
+                                            # El décimo caracter de cip_linea (índice 9)
+                                            cip_sexo = cip_linea[9]
+                                            # Año de nacimiento: carácteres 11 y 12 (año)
                                             fecha_nacimiento = cip_linea[10:12]
                                             anyo_nacimiento = int('19' + fecha_nacimiento)
                                             edad = anyo_actual - anyo_nacimiento
